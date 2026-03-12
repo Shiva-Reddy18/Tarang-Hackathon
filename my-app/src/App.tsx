@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Auth from './pages/Auth';
 import ObjectivesFlow from './pages/ObjectivesFlow';
@@ -37,6 +37,15 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireTeam = false }:
 };
 
 function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+}
+
+function AppContent() {
+  const location = useLocation();
   const { fetchUserAndTeam, user } = useAppStore();
 
   useEffect(() => {
@@ -44,66 +53,75 @@ function App() {
   }, [fetchUserAndTeam]);
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-brand-cyan/30">
-        
-        {/* Navigation Bar / Header - Minimal for now */}
-        <header className="fixed top-0 w-full z-50 bg-slate-900/50 backdrop-blur-md border-b border-white/5">
-          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <a href="/" className="text-2xl font-bold tracking-tighter">
-              <span className="text-white">Tarang</span>
-              <span className="text-brand-cyan">2k26</span>
-            </a>
-            <nav className="flex items-center space-x-6 text-sm font-medium">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-brand-cyan/30">
+      
+      {/* Navigation Bar / Header - Minimal for now */}
+      <header className="fixed top-0 w-full z-50 bg-slate-900/50 backdrop-blur-md border-b border-white/5">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-3">
+            <img src="https://www.srit.ac.in/wp-content/uploads/2021/04/Srinivasa_Ramanujan_Institute_of_Technology_logo.png" alt="SRIT Logo" className="h-10 w-auto object-contain" />
+            <div className="text-2xl font-bold tracking-tighter">
+               <span className="text-white">Tarang</span>
+               <span className="text-brand-cyan">2k26</span>
+            </div>
+          </a>
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            {user && (user.role === 'admin' || user.role === 'judge') && 
+             location.pathname !== '/' && 
+             location.pathname !== '' && (
               <a href="/leaderboard" className="text-slate-300 hover:text-white transition-colors">Leaderboard</a>
-              {user ? (
-                <button 
-                  onClick={async () => {
-                    await supabase.auth.signOut();
-                    window.location.href = '/';
-                  }}
-                  className="text-slate-400 hover:text-white transition-colors border border-white/10 px-3 py-1 rounded"
-                >
-                  Logout
-                </button>
-              ) : (
-                <a href="/auth" className="text-brand-cyan hover:underline">Login</a>
-              )}
-            </nav>
-          </div>
-        </header>
+            )}
+            {user ? (
+              <button 
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.href = '/';
+                }}
+                className="text-slate-400 hover:text-white transition-colors border border-white/10 px-3 py-1 rounded"
+              >
+                Logout
+              </button>
+            ) : (
+              <a href="/auth" className="text-brand-cyan hover:underline">Login</a>
+            )}
+          </nav>
+        </div>
+      </header>
 
-        {/* Main Content Area */}
-        <main className="pt-16 pb-8 min-h-screen">
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            
-            <Route path="/arena" element={
-              <ProtectedRoute requireTeam={true}>
-                <ObjectivesFlow />
-              </ProtectedRoute>
-            } />
+      {/* Main Content Area */}
+      <main className="pt-16 pb-8 min-h-screen">
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/leaderboard" element={
+            <ProtectedRoute requireAdmin={true}>
+              <Leaderboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/arena" element={
+            <ProtectedRoute requireTeam={true}>
+              <ObjectivesFlow />
+            </ProtectedRoute>
+          } />
 
-            {/* Protected Admin Routes */}
-            <Route path="/admin" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </main>
-        
-        {/* Footer */}
-        <footer className="w-full py-6 text-center text-slate-500 text-sm border-t border-white/5 bg-slate-950">
-          <p>© 2026 Tarang Hackathon. All rights reserved.</p>
-        </footer>
-      </div>
-    </BrowserRouter>
+          {/* Protected Admin Routes */}
+          <Route path="/admin" element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </main>
+      
+      {/* Footer */}
+      <footer className="w-full py-6 text-center text-slate-500 text-sm border-t border-white/5 bg-slate-950">
+        <p>© 2026 SD cell, SRIT. All rights reserved.</p>
+      </footer>
+    </div>
   );
 }
 

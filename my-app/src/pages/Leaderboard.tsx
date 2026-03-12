@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAppStore } from '../store';
 import { supabase } from '../lib/supabase';
 import { Trophy, Loader2 } from 'lucide-react';
 
@@ -17,8 +19,19 @@ type LeaderboardRow = {
 };
 
 export default function Leaderboard() {
+  const { user, loading: authLoading } = useAppStore();
   const [board, setBoard] = useState<LeaderboardRow[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Strict internal protection
+  if (!authLoading && (!user || (user.role !== 'admin' && user.role !== 'judge'))) {
+    return <Navigate to="/arena" replace />;
+  }
+
+  // Final line of defense against manual URL access
+  if (!authLoading && user && user.role !== 'admin' && user.role !== 'judge') {
+    return <Navigate to="/arena" replace />;
+  }
 
   useEffect(() => {
     fetchLeaderboard();
