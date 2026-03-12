@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 
 
 export default function Landing() {
@@ -23,18 +24,18 @@ export default function Landing() {
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-          <a
-            href="/auth"
-            className="px-8 py-4 rounded-full bg-brand-cyan text-slate-900 font-bold text-lg transition-transform hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(6,182,212,0.5)]"
+          <Link
+            to="/auth"
+            className="px-8 py-4 rounded-full bg-brand-cyan text-slate-900 font-bold text-lg transition-transform hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(6,182,212,0.5)] text-center no-underline"
           >
             Start Now / Participant Login
-          </a>
-          <a
-            href="/auth?admin=true"
-            className="px-8 py-4 rounded-full bg-slate-800 text-white font-bold text-lg transition-transform hover:scale-105 active:scale-95 border border-slate-700 hover:border-brand-cyan"
+          </Link>
+          <Link
+            to="/auth?admin=true"
+            className="px-8 py-4 rounded-full bg-slate-800 text-white font-bold text-lg transition-transform hover:scale-105 active:scale-95 border border-slate-700 hover:border-brand-cyan text-center no-underline"
           >
             Admin Login
-          </a>
+          </Link>
         </div>
       </div>
     </div>

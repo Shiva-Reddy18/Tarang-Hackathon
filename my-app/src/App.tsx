@@ -2,11 +2,11 @@ import { useEffect, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Auth from './pages/Auth';
-import TeamRegistration from './pages/TeamRegistration';
 import ObjectivesFlow from './pages/ObjectivesFlow';
 import AdminDashboard from './pages/AdminDashboard';
 import Leaderboard from './pages/Leaderboard';
 import { useAppStore } from './store';
+import { supabase } from './lib/supabase';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children, requireAdmin = false, requireTeam = false }: { children: ReactNode, requireAdmin?: boolean, requireTeam?: boolean }) => {
@@ -18,19 +18,26 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireTeam = false }:
     return <Navigate to="/auth" />;
   }
 
-  if (requireAdmin && user.role !== 'admin') {
-    return <Navigate to="/dashboard" />; // Or wherever non-admins belong
+  if (requireAdmin && user.role !== 'admin' && user.role !== 'judge') {
+    return <Navigate to="/arena" />; 
   }
 
-  if (requireTeam && !team && user.role !== 'admin') {
-    return <Navigate to="/register-team" />;
+  // Participants without teams (edge case since registration handles it now)
+  if (requireTeam && !team && user.role === 'participant') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center p-4">
+        <h2 className="text-2xl font-bold text-red-400 mb-2">Team Missing</h2>
+        <p className="text-slate-300">Your account is not associated with a registered team.</p>
+        <p className="text-slate-400 text-sm mt-4">Please contact an administrator.</p>
+      </div>
+    );
   }
 
   return <>{children}</>;
 };
 
 function App() {
-  const { fetchUserAndTeam } = useAppStore();
+  const { fetchUserAndTeam, user } = useAppStore();
 
   useEffect(() => {
     fetchUserAndTeam();
@@ -47,8 +54,21 @@ function App() {
               <span className="text-white">Tarang</span>
               <span className="text-brand-cyan">2k26</span>
             </a>
-            <nav className="flex space-x-6 text-sm font-medium">
+            <nav className="flex items-center space-x-6 text-sm font-medium">
               <a href="/leaderboard" className="text-slate-300 hover:text-white transition-colors">Leaderboard</a>
+              {user ? (
+                <button 
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    window.location.href = '/';
+                  }}
+                  className="text-slate-400 hover:text-white transition-colors border border-white/10 px-3 py-1 rounded"
+                >
+                  Logout
+                </button>
+              ) : (
+                <a href="/auth" className="text-brand-cyan hover:underline">Login</a>
+              )}
             </nav>
           </div>
         </header>
@@ -59,13 +79,6 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
-            
-            {/* Protected Participant Routes */}
-            <Route path="/register-team" element={
-              <ProtectedRoute>
-                <TeamRegistration />
-              </ProtectedRoute>
-            } />
             
             <Route path="/arena" element={
               <ProtectedRoute requireTeam={true}>
